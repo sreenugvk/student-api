@@ -1,0 +1,15 @@
+#%RAML 1.0
+title: student
+version: v1
+
+mediaType: 
+ - application/json
+ 
+/students:
+ get:
+  responses:
+    200:
+     body:
+       type: any
+       examples:
+         output: !include studentResponse.raml
