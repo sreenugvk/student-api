@@ -4,6 +4,9 @@ version: v1
 
 mediaType: 
  - application/json
+
+types:
+  student: !include studentDataType.raml
  
 /students:
  get:
@@ -13,4 +16,16 @@ mediaType:
        type: any
        examples:
          output: !include studentResponse.raml
+ post:
+  body:
+   type: student
+   examples:
+     input: !include studentnNoIdRequest.raml
+  responses:
+    200:
+     body:
+      examples:
+        messeges: student information inserted in DB
+      
+
           
