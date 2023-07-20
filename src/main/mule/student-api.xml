@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
-http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd  http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
     <http:listener-config name="student-api-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
     <apikit:config name="student-api-config" api="student-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
-    <db:config name="Database_Config" doc:name="Database Config" doc:id="50fbc575-a6a1-44d4-8586-99627a954ce4" >
-		<db:my-sql-connection host="localhost" port="3306" user="root" password="Hari@123" database="Muelsoft" />
-	</db:config>
-	<flow name="student-api-main">
+    <db:config name="Database_Config" doc:name="Database Config" doc:id="50fbc575-a6a1-44d4-8586-99627a954ce4">
+        <db:my-sql-connection host="localhost" port="3306" user="root" password="Hari@123" database="Muelsoft" />
+    </db:config>
+    <db:config name="Database_Config1" doc:name="Database Config" doc:id="2d521405-0842-47ba-92b5-7f61baf8de17">
+        <db:my-sql-connection host="localhost" port="3306" user="root" password="Hari@123" database="Muelsoft" />
+    </db:config>
+    <flow name="student-api-main">
         <http:listener config-ref="student-api-httpListenerConfig" path="/api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
                 <http:headers>#[vars.outboundHeaders default {}]</http:headers>
@@ -127,17 +129,38 @@ output application/json
             </on-error-propagate>
         </error-handler>
     </flow>
-	<flow name="get:\students:student-api-config">
-		<db:select doc:name="Select" doc:id="19ffa9d1-9be8-4811-82e5-4236269571c5" config-ref="Database_Config">
-			<db:sql ><![CDATA[Select * from student ]]></db:sql>
-		</db:select>
-		<ee:transform doc:name="Transform Message" doc:id="69bd2dd8-da78-4c8e-97b0-aa46f0207e2c" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
+    <flow name="get:\students:student-api-config">
+        <db:select doc:name="Select" doc:id="19ffa9d1-9be8-4811-82e5-4236269571c5" config-ref="Database_Config">
+            <db:sql><![CDATA[Select * from student]]></db:sql>
+        </db:select>
+        <ee:transform doc:name="Transform Message" doc:id="69bd2dd8-da78-4c8e-97b0-aa46f0207e2c">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 payload]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="put:\students:application\json:student-api-config">
+        <db:update doc:name="Update" doc:id="7537b619-d9ba-4a39-b664-d34f6960d6eb" config-ref="Database_Config1">
+            <db:sql><![CDATA[update student1
+ set fname = :fname, lname = :lname 
+  where id = :studentid]]></db:sql>
+            <db:input-parameters><![CDATA[#[{
+ fname: payload.fname,
+  lname: payload.lname,  
+ studentid: payload.id,
+ 
+}]]]></db:input-parameters>
+        </db:update>
+        <ee:transform doc:name="Transform Message" doc:id="e5170f68-9d9d-4384-9acd-bef20dfb5cb9">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+"updated data in database"]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
     </flow>
 </mule>

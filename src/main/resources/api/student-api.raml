@@ -5,12 +5,27 @@ version: v1
 mediaType: 
  - application/json
  
+types: 
+ student: !include studentDatatype.raml
 /students:
  get:
-  responses:
+   responses:
     200:
      body:
        type: any
        examples:
          output: !include studentResponse.raml
-          
+  
+ put:
+  body:
+   type: student
+   examples:
+    input: !include studentidrequest.raml
+  responses:
+    200:
+     body:
+      examples:
+        message: student is updated in DB
+    
+     
+ 
